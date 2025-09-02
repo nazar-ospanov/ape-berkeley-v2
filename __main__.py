@@ -43,17 +43,29 @@ if __name__ == '__main__':
         ],
     )
     
+    web_automation_skill = AgentSkill(
+        id='web_automation',
+        name='Web Game Automation',
+        description='Automates web-based tic-tac-toe games using optimal strategy until winning and extracts secret numbers',
+        tags=['web-automation', 'selenium', 'tic-tac-toe', 'game-playing', 'scraping'],
+        examples=[
+            'Go to https://ttt.puppy9.com/ and play tic-tac-toe until you win, then get the secret number',
+            'Play tic-tac-toe on the website https://example.com/tictactoe and extract the 14-digit secret',
+            'Automate tic-tac-toe game at https://game-site.com and find the congratulation message number'
+        ],
+    )
+    
 
     # This will be the public-facing agent card
     public_agent_card = AgentCard(
         name='Multi-Purpose Tool Agent',
-        description='An AI agent with tool-calling capabilities for math calculations, hashing operations, and sequential multi-tool workflows',
+        description='An AI agent with tool-calling capabilities for math calculations, hashing operations, and web game automation.',
         url='http://localhost:3000/',
-        version='2.0.0',
+        version='3.0.0',
         default_input_modes=['text'],
         default_output_modes=['text'],
         capabilities=AgentCapabilities(streaming=False),
-        skills=[math_skill, hashing_skill],  # All available skills
+        skills=[math_skill, hashing_skill, web_automation_skill],  # All available skills
         supports_authenticated_extended_card=False,
     )
 

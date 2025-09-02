@@ -6,9 +6,11 @@ This is an A2A (Agent-to-Agent) compliant agent with tool-calling capabilities t
 
 - **🧮 Math Calculator**: Performs elementary-level mathematical calculations and problem solving
 - **🔐 Hash Generator**: Creates MD5 and SHA-512 hashes of text input
+- **🎮 Web Game Automation**: Automates tic-tac-toe games on websites using optimal strategy
 - **🔗 Tool-Calling Agent**: LangChain-powered agent with sequential multi-tool operations
 - **🔄 Sequential Operations**: Supports chained operations like "1. md5hash 2. sha512hash 3. md5hash"
 - **🤖 LangChain Integration**: Uses ChatOpenAI with proper tool calling capabilities
+- **🌐 Selenium WebDriver**: Headless browser automation for web-based games
 - **📡 A2A Protocol Compliance**: Follows the Agent2Agent protocol specification
 - **⚡ Synchronous Operations**: Simple request-response pattern without streaming
 - **🌐 CORS Enabled**: Allows cross-origin requests from any domain
@@ -82,6 +84,11 @@ The agent accepts various types of queries through the A2A protocol:
 - `Solve 15*3 and then hash the answer with SHA-512`
 - `Hash "data" with MD5 then SHA-512`
 
+### 🎮 **Web Game Automation**
+- `Go to https://ttt.puppy9.com/ and play tic-tac-toe until you win, then get the secret number`
+- `Play tic-tac-toe on the website https://example.com/tictactoe and extract the 14-digit secret`
+- `Automate tic-tac-toe game at https://game-site.com and find the congratulation message number`
+
 ## Agent Card
 
 The agent exposes three main skills:
@@ -96,15 +103,17 @@ The agent exposes three main skills:
 - **Name**: Hash Generator
 - **Description**: Generates MD5 and SHA-512 hashes of text input with support for sequential operations
 
-### 🔗 **Multi-Tool Operations**
-- **ID**: `tool_calling`
-- **Name**: Multi-Tool Operations
-- **Description**: Performs sequential operations using multiple tools including math calculations and hashing
+### 🎮 **Web Game Automation**
+- **ID**: `web_automation`
+- **Name**: Web Game Automation
+- **Description**: Automates web-based tic-tac-toe games using optimal strategy until winning and extracts secret numbers
 
 ## Architecture
 
 - **🔗 MultiPurposeToolAgent**: LangChain tool-calling agent using `create_tool_calling_agent`
-- **🛠️ LangChain Tools**: Modular tools for math calculations, MD5 hashing, and SHA-512 hashing
+- **🛠️ LangChain Tools**: Modular tools for math calculations, MD5/SHA-512 hashing, and web automation
+- **🎮 Selenium WebDriver**: Headless Chrome automation for tic-tac-toe game playing
+- **🧠 Optimal Strategy**: Implements minimax-style strategy for winning tic-tac-toe games
 - **⚙️ MultiPurposeAgentExecutor**: A2A executor that implements the protocol interfaces
 - **📋 Agent Card**: Declares three distinct skills and capabilities
 - **⚡ Synchronous Processing**: Uses simple request-response pattern for reliability

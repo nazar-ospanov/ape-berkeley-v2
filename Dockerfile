@@ -7,10 +7,27 @@ WORKDIR /app
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
+ENV TZ=America/Los_Angeles
 
-# Install system dependencies if needed
+# Install system dependencies and Chromium (better ARM64 support)
 RUN apt-get update && apt-get install -y \
+    wget \
+    gnupg \
+    unzip \
+    curl \
+    xvfb \
+    ca-certificates \
+    chromium \
+    chromium-driver \
+    tzdata \
+    && ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone \
     && rm -rf /var/lib/apt/lists/*
+
+# Create symlinks for compatibility
+RUN ln -sf /usr/bin/chromium /usr/bin/google-chrome
+
+# Set display port to avoid crash
+ENV DISPLAY=:99
 
 # Copy requirements first for better caching
 COPY requirements.txt .

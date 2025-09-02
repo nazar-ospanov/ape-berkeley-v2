@@ -3,3 +3,6 @@ uvicorn
 python-dotenv
 langchain
 langchain-openai
+selenium
+beautifulsoup4
+webdriver-manager
