@@ -4,8 +4,11 @@ import time
 import re
 import signal
 import atexit
+import base64
+import io
 from typing import Optional, List, Dict, Any
 from dotenv import load_dotenv
+from PIL import Image
 from langchain_openai import ChatOpenAI
 from langchain.schema import HumanMessage
 from langchain.agents import create_tool_calling_agent, AgentExecutor as LangChainAgentExecutor
@@ -20,10 +23,10 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 # from bs4 import BeautifulSoup  # Not currently used, but available for HTML parsing
-from a2a.types import TextPart
+from a2a.types import TextPart, FilePart
 from a2a.server.agent_execution import AgentExecutor, RequestContext
 from a2a.server.events import EventQueue
-from a2a.utils import new_agent_text_message
+from a2a.utils import new_agent_text_message, new_task
 
 
 # Load environment variables
@@ -198,6 +201,53 @@ def sha512_hash(text: str) -> str:
         return hashlib.sha512(text.encode('utf-8')).hexdigest()
     except Exception as e:
         return f"Error generating SHA-512 hash: {str(e)}"
+
+
+@tool
+def analyze_image_for_cat_or_dog(image_base64: str) -> str:
+    """
+    Analyze an image to detect if it contains a cat or a dog using OpenAI Vision API.
+    
+    Args:
+        image_base64: Base64 encoded image data
+    
+    Returns:
+        "cat" if a cat is detected, "dog" if a dog is detected, or "neither" if neither is found
+    """
+    try:
+        # Initialize ChatOpenAI with vision capabilities
+        llm = ChatOpenAI(model="gpt-4o", temperature=0)
+        
+        # Create the message with image
+        message = HumanMessage(
+            content=[
+                {
+                    "type": "text",
+                    "text": "Look at this image and determine if there is a cat or a dog present. Respond with exactly one word: 'cat' if you see a cat, 'dog' if you see a dog, or 'neither' if you see neither a cat nor a dog."
+                },
+                {
+                    "type": "image_url",
+                    "image_url": {
+                        "url": f"data:image/png;base64,{image_base64}"
+                    }
+                }
+            ]
+        )
+        
+        # Get response from OpenAI Vision
+        response = llm.invoke([message])
+        result = response.content.lower().strip()
+        
+        # Ensure we return only valid responses
+        if "cat" in result:
+            return "cat"
+        elif "dog" in result:
+            return "dog"
+        else:
+            return "neither"
+            
+    except Exception as e:
+        return f"Error analyzing image: {str(e)}"
 
 
 @tool
@@ -446,6 +496,7 @@ class MultiPurposeToolAgent:
             math_calculator, 
             md5_hash, 
             sha512_hash,
+            analyze_image_for_cat_or_dog,
             start_tictactoe_game,
             parse_tictactoe_board,
             place_x_on_board,
@@ -462,14 +513,18 @@ MATH & CRYPTO TOOLS:
 2. md5_hash: For generating MD5 hashes of text
 3. sha512_hash: For generating SHA-512 hashes of text
 
+IMAGE UNDERSTANDING TOOLS:
+4. analyze_image_for_cat_or_dog: Analyze images to detect cats or dogs using OpenAI Vision API
+
 WEB AUTOMATION TOOLS:
-4. start_tictactoe_game: Start a new game session (call this first)
-5. parse_tictactoe_board: Parse the current state of a tic-tac-toe board from a website
-6. place_x_on_board: Place an X at a specific position (0-8) on the tic-tac-toe board
-7. check_win_and_extract_secret: Check if the game is won and extract the secret number (no URL needed)
+5. start_tictactoe_game: Start a new game session (call this first)
+6. parse_tictactoe_board: Parse the current state of a tic-tac-toe board from a website
+7. place_x_on_board: Place an X at a specific position (0-8) on the tic-tac-toe board
+8. check_win_and_extract_secret: Check if the game is won and extract the secret number (no URL needed)
 
 USAGE INSTRUCTIONS:
 - For sequential operations like "1. md5hash 2. sha-512 hash 3. md5 hash", perform them on the original text
+- For image analysis: When you see [IMAGE_DATA:...] in the input, extract the base64 data and use analyze_image_for_cat_or_dog
 - For tic-tac-toe games: ALWAYS start with start_tictactoe_game(url) to establish the session
 - The tic-tac-toe board uses positions 0-8 in this layout: [[0,1,2], [3,4,5], [6,7,8]]
 - Always extract the complete secret number when winning tic-tac-toe games
@@ -545,19 +600,54 @@ class MultiPurposeAgentExecutor(AgentExecutor):
             await event_queue.enqueue_event(new_agent_text_message(error_msg))
             return
         
-        # Get the text content from all parts
+        # Get the text content from all parts and check for images
         user_input = ""
+        image_data = None
+        
         for part in user_message.parts:
             if isinstance(part.root, TextPart):
                 user_input += part.root.text + " "
+            elif isinstance(part.root, FilePart):
+                file_part = part.root
+                # Check if it's an image file
+                if file_part.file.mime_type and file_part.file.mime_type.startswith('image/'):
+                    print(f"Detected image file: {file_part.file.mime_type}")
+                    if hasattr(file_part.file, 'bytes') and file_part.file.bytes:
+                        # Store raw bytes for direct tool call
+                        image_data = file_part.file.bytes
+                        user_input += f"[Image file detected: {file_part.file.mime_type}] "
+                    else:
+                        user_input += f"[Image file detected but no data: {file_part.file.mime_type}] "
         
         user_input = user_input.strip()
+        
+        # If we have image data, bypass the agent chain and call the tool directly
+        if image_data:
+            print("Bypassing agent chain for image analysis - calling tool directly")
+            try:
+                # Convert bytes to base64 if it's not already
+                if isinstance(image_data, bytes):
+                    image_base64 = base64.b64encode(image_data).decode('utf-8')
+                else:
+                    image_base64 = image_data  # Assume it's already base64
+                
+                # Call the image analysis tool directly
+                result = analyze_image_for_cat_or_dog(image_base64)
+                print(f"Direct image analysis result: {result}")
+                await event_queue.enqueue_event(new_task(new_agent_text_message(result, context_id=context.context_id, task_id=context.task_id)))
+                return
+            except Exception as e:
+                error_msg = f"Error in direct image analysis: {str(e)}"
+                print(error_msg)
+                await event_queue.enqueue_event(new_task(new_agent_text_message(error_msg, context_id=context.context_id, task_id=context.task_id)))
+                return
+        
         if not user_input:
             error_msg = "No input provided. Please provide a request for the agent to process."
             await event_queue.enqueue_event(new_agent_text_message(error_msg))
             return
         
-        # Process the request using the tool-calling agent
+        # Process the request using the tool-calling agent (non-image requests)
         result = await self.agent.process_request(user_input)
         print(f"User Input: {user_input}")
         print(f"Agent Result: {result}")

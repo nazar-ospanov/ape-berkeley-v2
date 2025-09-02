@@ -7,6 +7,7 @@ This is an A2A (Agent-to-Agent) compliant agent with tool-calling capabilities t
 - **🧮 Math Calculator**: Performs elementary-level mathematical calculations and problem solving
 - **🔐 Hash Generator**: Creates MD5 and SHA-512 hashes of text input
 - **🎮 Web Game Automation**: Automates tic-tac-toe games on websites using optimal strategy
+- **👁️ Image Understanding**: Analyzes images to detect cats and dogs using OpenAI Vision API
 - **🔗 Tool-Calling Agent**: LangChain-powered agent with sequential multi-tool operations
 - **🔄 Sequential Operations**: Supports chained operations like "1. md5hash 2. sha512hash 3. md5hash"
 - **🤖 LangChain Integration**: Uses ChatOpenAI with proper tool calling capabilities
@@ -89,9 +90,14 @@ The agent accepts various types of queries through the A2A protocol:
 - `Play tic-tac-toe on the website https://example.com/tictactoe and extract the 14-digit secret`
 - `Automate tic-tac-toe game at https://game-site.com and find the congratulation message number`
 
+### 👁️ **Image Understanding**
+- Send an image file (PNG/JPEG) with the question: `Is there a cat or dog in this image?`
+- `Analyze this photo to determine if it contains a cat or a dog`
+- `Look at this image and tell me if you see a cat or dog`
+
 ## Agent Card
 
-The agent exposes three main skills:
+The agent exposes four main skills:
 
 ### 🧮 **Math Calculator**
 - **ID**: `math_calculator`
@@ -108,14 +114,20 @@ The agent exposes three main skills:
 - **Name**: Web Game Automation
 - **Description**: Automates web-based tic-tac-toe games using optimal strategy until winning and extracts secret numbers
 
+### 👁️ **Image Understanding**
+- **ID**: `image_understanding`
+- **Name**: Image Understanding
+- **Description**: Analyzes images to detect cats and dogs using OpenAI Vision API
+
 ## Architecture
 
 - **🔗 MultiPurposeToolAgent**: LangChain tool-calling agent using `create_tool_calling_agent`
-- **🛠️ LangChain Tools**: Modular tools for math calculations, MD5/SHA-512 hashing, and web automation
+- **🛠️ LangChain Tools**: Modular tools for math calculations, MD5/SHA-512 hashing, web automation, and image analysis
 - **🎮 Selenium WebDriver**: Headless Chrome automation for tic-tac-toe game playing
 - **🧠 Optimal Strategy**: Implements minimax-style strategy for winning tic-tac-toe games
 - **⚙️ MultiPurposeAgentExecutor**: A2A executor that implements the protocol interfaces
-- **📋 Agent Card**: Declares three distinct skills and capabilities
+- **📋 Agent Card**: Declares four distinct skills and capabilities
+- **👁️ OpenAI Vision API**: GPT-4o with vision capabilities for image analysis
 - **⚡ Synchronous Processing**: Uses simple request-response pattern for reliability
 - **🌐 CORS Middleware**: Configured to allow all origins, methods, and headers for maximum compatibility
 - **🤖 ChatOpenAI Integration**: Powered by OpenAI's language models with tool calling support

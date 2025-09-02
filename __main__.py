@@ -55,17 +55,29 @@ if __name__ == '__main__':
         ],
     )
     
+    image_understanding_skill = AgentSkill(
+        id='image_understanding',
+        name='Image Understanding',
+        description='Analyzes images to detect cats and dogs using OpenAI Vision API',
+        tags=['image-analysis', 'computer-vision', 'cat-detection', 'dog-detection', 'ai-vision'],
+        examples=[
+            'Is there a cat or dog in this image?',
+            'Analyze this photo to determine if it contains a cat or a dog',
+            'Look at this image and tell me if you see a cat or dog'
+        ],
+    )
+    
 
     # This will be the public-facing agent card
     public_agent_card = AgentCard(
         name='Multi-Purpose Tool Agent',
-        description='An AI agent with tool-calling capabilities for math calculations, hashing operations, and web game automation.',
+        description='An AI agent with tool-calling capabilities for math calculations, hashing operations, web game automation, and image understanding.',
         url='http://localhost:3000/',
-        version='3.0.0',
+        version='4.0.0',
         default_input_modes=['text'],
         default_output_modes=['text'],
         capabilities=AgentCapabilities(streaming=False),
-        skills=[math_skill, hashing_skill, web_automation_skill],  # All available skills
+        skills=[math_skill, hashing_skill, web_automation_skill, image_understanding_skill],  # All available skills
         supports_authenticated_extended_card=False,
     )
 
