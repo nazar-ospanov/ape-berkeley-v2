@@ -1,6 +1,6 @@
 # Multi-Purpose Tool A2A Agent
 
-This is an A2A (Agent-to-Agent) compliant agent with tool-calling capabilities that provides math calculations, hashing operations, and sequential multi-tool workflows using OpenAI's language models through LangChain.
+This is an A2A (Agent-to-Agent) compliant agent with tool-calling capabilities that provides math calculations, hashing operations, code execution, and sequential multi-tool workflows using OpenAI's language models through LangChain.
 
 ## Features
 
@@ -8,6 +8,7 @@ This is an A2A (Agent-to-Agent) compliant agent with tool-calling capabilities t
 - **🔐 Hash Generator**: Creates MD5 and SHA-512 hashes of text input
 - **🎮 Web Game Automation**: Automates tic-tac-toe games on websites using optimal strategy
 - **👁️ Image Understanding**: Analyzes images to detect cats and dogs using OpenAI Vision API
+- **💻 Code Generation & Execution**: Generates and executes Python code to solve programming challenges
 - **🔗 Tool-Calling Agent**: LangChain-powered agent with sequential multi-tool operations
 - **🔄 Sequential Operations**: Supports chained operations like "1. md5hash 2. sha512hash 3. md5hash"
 - **🤖 LangChain Integration**: Uses ChatOpenAI with proper tool calling capabilities
@@ -95,9 +96,16 @@ The agent accepts various types of queries through the A2A protocol:
 - `Analyze this photo to determine if it contains a cat or a dog`
 - `Look at this image and tell me if you see a cat or dog`
 
+### 💻 **Code Generation & Execution**
+- `Write a program that computes the sum of squares of all prime numbers from 1 to 95176 modulo 1000`
+- `Create code to find the largest palindrome made from the product of two 3-digit numbers`
+- `Generate a program to solve the Fibonacci sequence up to the 50th term`
+- `Write code to calculate the factorial of 100 and find the sum of its digits`
+- `Implement a function to check if a number is prime and test it with 97`
+
 ## Agent Card
 
-The agent exposes four main skills:
+The agent exposes five main skills:
 
 ### 🧮 **Math Calculator**
 - **ID**: `math_calculator`
@@ -119,14 +127,20 @@ The agent exposes four main skills:
 - **Name**: Image Understanding
 - **Description**: Analyzes images to detect cats and dogs using OpenAI Vision API
 
+### 💻 **Code Generation & Execution**
+- **ID**: `code_execution`
+- **Name**: Code Generation & Execution
+- **Description**: Generates and executes Python code to solve programming challenges and computational problems
+
 ## Architecture
 
 - **🔗 MultiPurposeToolAgent**: LangChain tool-calling agent using `create_tool_calling_agent`
-- **🛠️ LangChain Tools**: Modular tools for math calculations, MD5/SHA-512 hashing, web automation, and image analysis
+- **🛠️ LangChain Tools**: Modular tools for math calculations, MD5/SHA-512 hashing, web automation, image analysis, and code execution
 - **🎮 Selenium WebDriver**: Headless Chrome automation for tic-tac-toe game playing
 - **🧠 Optimal Strategy**: Implements minimax-style strategy for winning tic-tac-toe games
+- **💻 Code Execution Engine**: Safe Python code generation and execution with subprocess isolation
 - **⚙️ MultiPurposeAgentExecutor**: A2A executor that implements the protocol interfaces
-- **📋 Agent Card**: Declares four distinct skills and capabilities
+- **📋 Agent Card**: Declares five distinct skills and capabilities
 - **👁️ OpenAI Vision API**: GPT-4o with vision capabilities for image analysis
 - **⚡ Synchronous Processing**: Uses simple request-response pattern for reliability
 - **🌐 CORS Middleware**: Configured to allow all origins, methods, and headers for maximum compatibility

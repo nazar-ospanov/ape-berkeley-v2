@@ -6,6 +6,9 @@ import signal
 import atexit
 import base64
 import io
+import subprocess
+import tempfile
+import sys
 from typing import Optional, List, Dict, Any
 from dotenv import load_dotenv
 from PIL import Image
@@ -248,6 +251,97 @@ def analyze_image_for_cat_or_dog(image_base64: str) -> str:
             
     except Exception as e:
         return f"Error analyzing image: {str(e)}"
+
+
+@tool
+def generate_and_execute_code(problem_description: str) -> str:
+    """
+    Generate Python code to solve a given coding problem and execute it safely.
+    
+    Args:
+        problem_description: Description of the coding problem to solve
+        
+    Returns:
+        str: The output of the executed code or error message
+    """
+    try:
+        # Load OpenAI API key
+        openai_api_key = os.getenv('OPENAI_API_KEY')
+        if not openai_api_key:
+            return "Error: OpenAI API key not found"
+        
+        # Create ChatOpenAI instance
+        llm = ChatOpenAI(
+            model="gpt-4o",
+            api_key=openai_api_key
+        )
+        
+        # Create a prompt for code generation
+        code_generation_prompt = f"""
+You are a Python programming expert. Given the following problem description, write Python code to solve it.
+
+Problem: {problem_description}
+
+Requirements:
+1. Write clean, efficient Python code
+2. Include comments explaining the logic
+3. Make sure the code handles edge cases
+4. Print the final result clearly
+5. Don't use any external libraries unless absolutely necessary (stick to standard library)
+6. The code should be complete and executable
+
+Respond with ONLY the Python code, no explanations or markdown formatting.
+"""
+        
+        # Generate code
+        response = llm.invoke([HumanMessage(content=code_generation_prompt)])
+        generated_code = response.content.strip()
+        
+        # Clean up the code (remove markdown formatting if present)
+        if generated_code.startswith("```python"):
+            generated_code = generated_code.replace("```python", "").replace("```", "").strip()
+        elif generated_code.startswith("```"):
+            generated_code = generated_code.replace("```", "").strip()
+        
+        print(f"Generated code:\n{generated_code}")
+        
+        # Execute the code safely in a temporary file
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as temp_file:
+            temp_file.write(generated_code)
+            temp_file_path = temp_file.name
+        
+        try:
+            # Execute the code with a timeout
+            result = subprocess.run(
+                [sys.executable, temp_file_path],
+                capture_output=True,
+                text=True,
+                timeout=30,  # 30 second timeout
+                cwd=tempfile.gettempdir()  # Run in a safe directory
+            )
+            
+            # Clean up the temporary file
+            os.unlink(temp_file_path)
+            
+            if result.returncode == 0:
+                output = result.stdout.strip()
+                if result.stderr:
+                    output += f"\nWarnings: {result.stderr.strip()}"
+                return f"Code executed successfully!\n\nGenerated Code:\n{generated_code}\n\nOutput:\n{output}"
+            else:
+                error_output = result.stderr.strip() if result.stderr else "Unknown error"
+                return f"Code execution failed!\n\nGenerated Code:\n{generated_code}\n\nError:\n{error_output}"
+                
+        except subprocess.TimeoutExpired:
+            os.unlink(temp_file_path)
+            return f"Code execution timed out (30s limit)!\n\nGenerated Code:\n{generated_code}"
+        except Exception as exec_error:
+            if os.path.exists(temp_file_path):
+                os.unlink(temp_file_path)
+            return f"Error executing code: {str(exec_error)}\n\nGenerated Code:\n{generated_code}"
+            
+    except Exception as e:
+        return f"Error generating or executing code: {str(e)}"
 
 
 @tool
@@ -497,6 +591,7 @@ class MultiPurposeToolAgent:
             md5_hash, 
             sha512_hash,
             analyze_image_for_cat_or_dog,
+            generate_and_execute_code,
             start_tictactoe_game,
             parse_tictactoe_board,
             place_x_on_board,
@@ -516,15 +611,19 @@ MATH & CRYPTO TOOLS:
 IMAGE UNDERSTANDING TOOLS:
 4. analyze_image_for_cat_or_dog: Analyze images to detect cats or dogs using OpenAI Vision API
 
+CODE EXECUTION TOOLS:
+5. generate_and_execute_code: Generate Python code to solve coding problems and execute it safely
+
 WEB AUTOMATION TOOLS:
-5. start_tictactoe_game: Start a new game session (call this first)
-6. parse_tictactoe_board: Parse the current state of a tic-tac-toe board from a website
-7. place_x_on_board: Place an X at a specific position (0-8) on the tic-tac-toe board
-8. check_win_and_extract_secret: Check if the game is won and extract the secret number (no URL needed)
+6. start_tictactoe_game: Start a new game session (call this first)
+7. parse_tictactoe_board: Parse the current state of a tic-tac-toe board from a website
+8. place_x_on_board: Place an X at a specific position (0-8) on the tic-tac-toe board
+9. check_win_and_extract_secret: Check if the game is won and extract the secret number (no URL needed)
 
 USAGE INSTRUCTIONS:
 - For sequential operations like "1. md5hash 2. sha-512 hash 3. md5 hash", perform them on the original text
 - For image analysis: When you see [IMAGE_DATA:...] in the input, extract the base64 data and use analyze_image_for_cat_or_dog
+- For coding problems: Use generate_and_execute_code to write and run Python code for any programming challenge
 - For tic-tac-toe games: ALWAYS start with start_tictactoe_game(url) to establish the session
 - The tic-tac-toe board uses positions 0-8 in this layout: [[0,1,2], [3,4,5], [6,7,8]]
 - Always extract the complete secret number when winning tic-tac-toe games

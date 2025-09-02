@@ -67,17 +67,30 @@ if __name__ == '__main__':
         ],
     )
     
+    code_execution_skill = AgentSkill(
+        id='code_execution',
+        name='Code Generation & Execution',
+        description='Generates and executes Python code to solve programming challenges and computational problems',
+        tags=['programming', 'python', 'code-generation', 'algorithms', 'problem-solving', 'execution'],
+        examples=[
+            'Write a program that computes the sum of squares of all prime numbers from 1 to n',
+            'Create code to find the largest palindrome made from the product of two 3-digit numbers',
+            'Generate a program to solve the Fibonacci sequence up to the 50th term',
+            'Write code to calculate the factorial of 100 and find the sum of its digits'
+        ],
+    )
+    
 
     # This will be the public-facing agent card
     public_agent_card = AgentCard(
         name='Multi-Purpose Tool Agent',
-        description='An AI agent with tool-calling capabilities for math calculations, hashing operations, web game automation, and image understanding.',
+        description='An AI agent with tool-calling capabilities for math calculations, hashing operations, web game automation, image understanding, and code execution.',
         url='http://localhost:3000/',
-        version='4.0.0',
+        version='5.0.0',
         default_input_modes=['text'],
         default_output_modes=['text'],
         capabilities=AgentCapabilities(streaming=False),
-        skills=[math_skill, hashing_skill, web_automation_skill, image_understanding_skill],  # All available skills
+        skills=[math_skill, hashing_skill, web_automation_skill, image_understanding_skill, code_execution_skill],  # All available skills
         supports_authenticated_extended_card=False,
     )
 
