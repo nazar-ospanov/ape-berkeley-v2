@@ -1,6 +1,6 @@
 # Multi-Purpose Tool A2A Agent
 
-This is an A2A (Agent-to-Agent) compliant agent with tool-calling capabilities that provides math calculations, hashing operations, code execution, and sequential multi-tool workflows using OpenAI's language models through LangChain.
+This is an A2A (Agent-to-Agent) compliant agent with tool-calling capabilities that provides math calculations, hashing operations, code execution, persistent memory, and sequential multi-tool workflows using OpenAI's language models through LangChain.
 
 ## Features
 
@@ -9,6 +9,7 @@ This is an A2A (Agent-to-Agent) compliant agent with tool-calling capabilities t
 - **🎮 Web Game Automation**: Automates tic-tac-toe games on websites using optimal strategy
 - **👁️ Image Understanding**: Analyzes images to detect cats and dogs using OpenAI Vision API
 - **💻 Code Generation & Execution**: Generates and executes Python code to solve programming challenges
+- **🧠 Persistent Memory**: Records and retrieves information across agent sessions with file-based storage
 - **🔗 Tool-Calling Agent**: LangChain-powered agent with sequential multi-tool operations
 - **🔄 Sequential Operations**: Supports chained operations like "1. md5hash 2. sha512hash 3. md5hash"
 - **🤖 LangChain Integration**: Uses ChatOpenAI with proper tool calling capabilities
@@ -103,9 +104,17 @@ The agent accepts various types of queries through the A2A protocol:
 - `Write code to calculate the factorial of 100 and find the sum of its digits`
 - `Implement a function to check if a number is prime and test it with 97`
 
+### 🧠 **Persistent Memory**
+- `Remember that I prefer Python over JavaScript for backend development`
+- `Record that my project deadline is next Friday at 5 PM`
+- `Remember my OpenAI API key is stored in the .env file`
+- `Check what you remember about my preferences`
+- `What did I tell you to remember about my coding style?`
+- `Recall everything you know about my project requirements`
+
 ## Agent Card
 
-The agent exposes five main skills:
+The agent exposes six main skills:
 
 ### 🧮 **Math Calculator**
 - **ID**: `math_calculator`
@@ -132,15 +141,21 @@ The agent exposes five main skills:
 - **Name**: Code Generation & Execution
 - **Description**: Generates and executes Python code to solve programming challenges and computational problems
 
+### 🧠 **Persistent Memory**
+- **ID**: `memory`
+- **Name**: Persistent Memory
+- **Description**: Records and retrieves information across agent sessions with persistent storage
+
 ## Architecture
 
 - **🔗 MultiPurposeToolAgent**: LangChain tool-calling agent using `create_tool_calling_agent`
-- **🛠️ LangChain Tools**: Modular tools for math calculations, MD5/SHA-512 hashing, web automation, image analysis, and code execution
+- **🛠️ LangChain Tools**: Modular tools for math calculations, MD5/SHA-512 hashing, web automation, image analysis, code execution, and memory
 - **🎮 Selenium WebDriver**: Headless Chrome automation for tic-tac-toe game playing
 - **🧠 Optimal Strategy**: Implements minimax-style strategy for winning tic-tac-toe games
 - **💻 Code Execution Engine**: Safe Python code generation and execution with subprocess isolation
+- **📝 Persistent Memory System**: File-based memory storage that survives container restarts and sessions
 - **⚙️ MultiPurposeAgentExecutor**: A2A executor that implements the protocol interfaces
-- **📋 Agent Card**: Declares five distinct skills and capabilities
+- **📋 Agent Card**: Declares six distinct skills and capabilities
 - **👁️ OpenAI Vision API**: GPT-4o with vision capabilities for image analysis
 - **⚡ Synchronous Processing**: Uses simple request-response pattern for reliability
 - **🌐 CORS Middleware**: Configured to allow all origins, methods, and headers for maximum compatibility

@@ -9,9 +9,9 @@ import io
 import subprocess
 import tempfile
 import sys
+from datetime import datetime
 from typing import Optional, List, Dict, Any
 from dotenv import load_dotenv
-from PIL import Image
 from langchain_openai import ChatOpenAI
 from langchain.schema import HumanMessage
 from langchain.agents import create_tool_calling_agent, AgentExecutor as LangChainAgentExecutor
@@ -251,6 +251,61 @@ def analyze_image_for_cat_or_dog(image_base64: str) -> str:
             
     except Exception as e:
         return f"Error analyzing image: {str(e)}"
+
+
+@tool
+def record_in_memory(text: str) -> str:
+    """
+    Record information in persistent memory that survives across agent sessions.
+    
+    Args:
+        text: The text to remember and store in memory
+        
+    Returns:
+        str: Confirmation message about what was recorded
+    """
+    try:
+        memory_file = "/app/memory.txt"
+        
+        # Append the new memory entry with timestamp
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        memory_entry = f"[{timestamp}] {text}\n"
+        
+        with open(memory_file, "a", encoding="utf-8") as f:
+            f.write(memory_entry)
+        
+        return f"Successfully recorded in memory: {text}"
+        
+    except Exception as e:
+        return f"Error recording memory: {str(e)}"
+
+
+@tool
+def check_memory() -> str:
+    """
+    Retrieve all stored memories from previous sessions.
+    
+    Returns:
+        str: All stored memories or message if no memories exist
+    """
+    try:
+        memory_file = "/app/memory.txt"
+        
+        # Check if memory file exists
+        if not os.path.exists(memory_file):
+            return "No memories found. Memory file doesn't exist yet."
+        
+        # Read all memories
+        with open(memory_file, "r", encoding="utf-8") as f:
+            memories = f.read().strip()
+        
+        if not memories:
+            return "No memories stored yet."
+        
+        return f"Stored memories:\n\n{memories}"
+        
+    except Exception as e:
+        return f"Error reading memory: {str(e)}"
 
 
 @tool
@@ -592,6 +647,8 @@ class MultiPurposeToolAgent:
             sha512_hash,
             analyze_image_for_cat_or_dog,
             generate_and_execute_code,
+            record_in_memory,
+            check_memory,
             start_tictactoe_game,
             parse_tictactoe_board,
             place_x_on_board,
@@ -614,16 +671,21 @@ IMAGE UNDERSTANDING TOOLS:
 CODE EXECUTION TOOLS:
 5. generate_and_execute_code: Generate Python code to solve coding problems and execute it safely
 
+MEMORY TOOLS:
+6. record_in_memory: Store information in persistent memory that survives across sessions
+7. check_memory: Retrieve all stored memories from previous sessions
+
 WEB AUTOMATION TOOLS:
-6. start_tictactoe_game: Start a new game session (call this first)
-7. parse_tictactoe_board: Parse the current state of a tic-tac-toe board from a website
-8. place_x_on_board: Place an X at a specific position (0-8) on the tic-tac-toe board
-9. check_win_and_extract_secret: Check if the game is won and extract the secret number (no URL needed)
+8. start_tictactoe_game: Start a new game session (call this first)
+9. parse_tictactoe_board: Parse the current state of a tic-tac-toe board from a website
+10. place_x_on_board: Place an X at a specific position (0-8) on the tic-tac-toe board
+11. check_win_and_extract_secret: Check if the game is won and extract the secret number (no URL needed)
 
 USAGE INSTRUCTIONS:
 - For sequential operations like "1. md5hash 2. sha-512 hash 3. md5 hash", perform them on the original text
 - For image analysis: When you see [IMAGE_DATA:...] in the input, extract the base64 data and use analyze_image_for_cat_or_dog
 - For coding problems: Use generate_and_execute_code to write and run Python code for any programming challenge
+- For memory operations: Use record_in_memory when user asks to remember something, check_memory when they want to recall
 - For tic-tac-toe games: ALWAYS start with start_tictactoe_game(url) to establish the session
 - The tic-tac-toe board uses positions 0-8 in this layout: [[0,1,2], [3,4,5], [6,7,8]]
 - Always extract the complete secret number when winning tic-tac-toe games

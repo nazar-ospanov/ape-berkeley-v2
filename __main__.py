@@ -80,17 +80,31 @@ if __name__ == '__main__':
         ],
     )
     
+    memory_skill = AgentSkill(
+        id='memory',
+        name='Persistent Memory',
+        description='Records and retrieves information across agent sessions with persistent storage',
+        tags=['memory', 'storage', 'persistence', 'recall', 'notes', 'remember'],
+        examples=[
+            'Remember that I prefer Python over JavaScript',
+            'Record that my project deadline is next Friday',
+            'Remember my OpenAI API key is stored in the .env file',
+            'Check what you remember about my preferences',
+            'What did I tell you to remember last time?'
+        ],
+    )
+    
 
     # This will be the public-facing agent card
     public_agent_card = AgentCard(
         name='Multi-Purpose Tool Agent',
-        description='An AI agent with tool-calling capabilities for math calculations, hashing operations, web game automation, image understanding, and code execution.',
+        description='An AI agent with tool-calling capabilities for math calculations, hashing operations, web game automation, image understanding, code execution, and persistent memory.',
         url='http://localhost:3000/',
-        version='5.0.0',
+        version='6.0.0',
         default_input_modes=['text'],
         default_output_modes=['text'],
         capabilities=AgentCapabilities(streaming=False),
-        skills=[math_skill, hashing_skill, web_automation_skill, image_understanding_skill, code_execution_skill],  # All available skills
+        skills=[math_skill, hashing_skill, web_automation_skill, image_understanding_skill, code_execution_skill, memory_skill],  # All available skills
         supports_authenticated_extended_card=False,
     )
 

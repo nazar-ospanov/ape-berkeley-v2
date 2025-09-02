@@ -6,4 +6,3 @@ langchain-openai
 selenium
 beautifulsoup4
 webdriver-manager
-pillow

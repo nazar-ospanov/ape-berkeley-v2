@@ -38,6 +38,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . .
 
+# Create fresh memory file on each build
+RUN touch /app/memory.txt && echo "# Agent Memory - Fresh Start" > /app/memory.txt
+
 # Expose the port the app runs on
 EXPOSE 3000
 
